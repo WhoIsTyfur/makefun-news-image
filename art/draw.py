@@ -813,8 +813,8 @@ def build_v6(path, list_items=None):
 
 
 ROW1_6 = [
-    (scene_faa, "UNITED STATES", "FAA halts all US departures as air-traffic telecoms fail",
-     "First nationwide ground stop since Jan 2023; nearly 5,000 flights cancelled; no sign of an attack",
+    (scene_faa, "UNITED STATES", "FAA halts all US departures for hours as air-traffic telecoms fail",
+     "Lifted Friday night; 4,000+ flights cancelled, 10,000+ delayed. DHS: no sign of an attack",
      (-98, 39)),
     (scene_iran, "MIDDLE EAST", "Iran says it hit a US radar in Bahrain; US denies it",
      "US says it shot down both drones; IRGC cites a US strike in Sirik", (50.5, 26)),
