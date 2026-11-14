@@ -146,7 +146,8 @@ def scene_faa(c):
                                       (w * 0.30, h * 0.90, 1.35)]):
         plane(c, px, py, k, (236, 238, 242))
     # departures board
-    bx0, by0, bx1 = w * 0.53, h * 0.05, w * 0.97
+    k = min(1.0, w / 600)
+    bx0, by0, bx1 = w * 0.50, h * 0.05, w * 0.97
     rows = [("NEW YORK", "CANCELLED"), ("CHICAGO", "CANCELLED"), ("ATLANTA", "CANCELLED"),
             ("DALLAS", "CANCELLED"), ("DENVER", "CANCELLED"), ("LOS ANGELES", "CANCELLED")]
     nrow = max(3, min(6, int((h * 0.92 - 42) // 25)))
@@ -154,15 +155,15 @@ def scene_faa(c):
     rh = min(27, (h * 0.90 - 42) / nrow)
     c.rect(bx0, by0, bx1, by0 + 34 + rh * len(rows) + 8, fill=(14, 16, 20), outline=(90, 90, 90),
            width=2, r=4)
-    fh = F("arialbd.ttf", 17)
+    fh = F("arialbd.ttf", 17 * k)
     c.text(bx0 + 10, by0 + 8, "DEPARTURES", fh, (250, 200, 40))
     c.text(bx1 - 10, by0 + 8, "16:05 ET", fh, (250, 200, 40), anchor="ra")
-    fr = F("bahnschrift.ttf", 17)
+    fr = F("bahnschrift.ttf", 17 * k)
     for i, (city, st) in enumerate(rows):
         y = by0 + 36 + i * rh
         c.text(bx0 + 10, y, city, fr, (235, 235, 235))
-        c.rect(bx1 - 122, y - 2, bx1 - 8, y + 20, fill=RED)
-        c.text(bx1 - 65, y + 9, st, F("arialbd.ttf", 15), WHITE, anchor="mm")
+        c.rect(bx1 - 122 * k, y - 2, bx1 - 8, y + 20 * k, fill=RED)
+        c.text(bx1 - 4 - 61 * k, y + 9 * k, st, F("arialbd.ttf", 15 * k), WHITE, anchor="mm")
     # STOP sign
     cx, cy, r = w * 0.40, h * 0.30, min(52, h * 0.19)
     oct_pts = [(cx + r * math.cos(math.radians(22.5 + 45 * i)), cy + r * math.sin(math.radians(22.5 + 45 * i)))
@@ -197,9 +198,9 @@ def scene_iran(c):
             c.line([(dx + 16 + k * 10, dy), (dx + 22 + k * 10, dy)], (120, 100, 80), 2)
     # claim / denial tags
     c.rect(w * 0.50, h * 0.50, w * 0.98, h * 0.66, fill=(20, 110, 60), r=4)
-    c.text(w * 0.74, h * 0.58, "IRAN: \u201cDESTROYED\u201d", F("arialbd.ttf", 15), WHITE, anchor="mm")
+    c.text(w * 0.74, h * 0.58, "IRAN: \u201cDESTROYED\u201d", c.fit("IRAN: DESTROYED   ", "arialbd.ttf", 15, w * 0.44), WHITE, anchor="mm")
     c.rect(w * 0.50, h * 0.72, w * 0.98, h * 0.88, fill=NAVY, r=4)
-    c.text(w * 0.74, h * 0.80, "US: DRONES SHOT DOWN", F("arialbd.ttf", 15), WHITE, anchor="mm")
+    c.text(w * 0.74, h * 0.80, "US: DRONES SHOT DOWN", c.fit("US: DRONES SHOT DOWN", "arialbd.ttf", 15, w * 0.44), WHITE, anchor="mm")
 
 
 def scene_starship(c):
@@ -504,7 +505,8 @@ def wrap(cv, s, font, maxw):
     return lines
 
 
-def panel(cv, box, painter, num, region, head, sub, scene_frac=0.55, head_px=22, sub_px=13.5):
+def panel(cv, box, painter, num, region, head, sub, scene_frac=0.55, head_px=22, sub_px=13.5,
+          hfont="arialbd.ttf"):
     x0, y0, x1, y1 = box
     sy1 = y0 + (y1 - y0) * scene_frac
     sub_c = cv.clip(x0, y0, x1, sy1)
@@ -519,11 +521,11 @@ def panel(cv, box, painter, num, region, head, sub, scene_frac=0.55, head_px=22,
     cv.text(x0 + 31, y + 9.5, region, F("arialbd.ttf", 12), col, anchor="lm")
     y += 22
     maxw = (x1 - x0) - 18
-    fh = F("arialbd.ttf", head_px)
+    fh = F(hfont, head_px)
     lines = wrap(cv, head, fh, maxw)
     while len(lines) > 2:
         head_px -= 1
-        fh = F("arialbd.ttf", head_px)
+        fh = F(hfont, head_px)
         lines = wrap(cv, head, fh, maxw)
     for ln in lines:
         cv.text(x0 + 9, y, ln, fh, INK)
@@ -553,10 +555,62 @@ def listing(cv, box, items, start, cols=3, px=13):
         cv.text(cx + 22, cy + 1, txt, f, INK)
 
 
-def build(path):
+# ---- world locator map (rough hand-made outlines, lon/lat) ---------------------------
+
+LAND = [
+    [(-168, 66), (-140, 70), (-95, 72), (-80, 63), (-60, 55), (-53, 47), (-70, 43), (-76, 35), (-81, 25),
+     (-90, 30), (-97, 26), (-97, 20), (-87, 21), (-83, 10), (-78, 8), (-90, 14), (-105, 20), (-112, 30),
+     (-118, 34), (-124, 40), (-125, 48), (-135, 58), (-150, 60), (-165, 60)],
+    [(-52, 60), (-42, 60), (-20, 70), (-20, 80), (-60, 82), (-70, 77), (-55, 68)],
+    [(-78, 8), (-60, 10), (-50, 0), (-35, -6), (-40, -22), (-48, -27), (-58, -35), (-65, -42), (-68, -55),
+     (-75, -50), (-72, -30), (-70, -18), (-81, -5), (-80, 2)],
+    [(-10, 36), (-9, 43), (-2, 44), (-4, 48), (5, 53), (8, 57), (5, 62), (15, 69), (28, 71), (40, 67), (60, 68),
+     (60, 45), (40, 42), (28, 41), (26, 38), (20, 40), (15, 38), (12, 44), (5, 43), (0, 39), (-5, 36)],
+    [(-6, 50), (2, 51), (0, 54), (-3, 58), (-6, 57)],
+    [(-10, 52), (-6, 52), (-6, 55), (-10, 54)],
+    [(-17, 21), (-10, 30), (-6, 36), (10, 37), (20, 32), (32, 31), (35, 28), (43, 12), (51, 12), (40, -2),
+     (40, -15), (35, -25), (27, -34), (18, -34), (12, -17), (13, -5), (9, 4), (-8, 5), (-17, 14)],
+    [(28, 41), (36, 36), (35, 32), (43, 13), (52, 16), (58, 22), (56, 26), (62, 25), (67, 24), (73, 20), (77, 8),
+     (80, 15), (88, 22), (92, 21), (98, 16), (100, 7), (104, 1), (106, 10), (109, 12), (108, 21), (117, 23),
+     (122, 30), (121, 40), (127, 38), (129, 35), (130, 42), (140, 48), (142, 53), (135, 55), (150, 60),
+     (162, 60), (180, 66), (180, 70), (140, 73), (110, 77), (80, 73), (60, 68), (60, 45), (40, 42)],
+    [(130, 31), (141, 35), (142, 43), (140, 41), (135, 34)],
+    [(95, 5), (106, -6), (115, -8), (120, -9), (125, -8), (118, -4), (110, -2), (100, 2)],
+    [(110, 1), (118, 6), (119, 1), (116, -4), (110, -2)],
+    [(131, -1), (150, -6), (147, -10), (138, -8)],
+    [(114, -22), (122, -17), (130, -12), (137, -12), (142, -11), (146, -19), (153, -27), (150, -37), (141, -38),
+     (131, -31), (115, -34)],
+    [(44, -25), (50, -15), (49, -12), (43, -17)],
+    [(172, -34), (178, -38), (174, -41), (167, -46), (171, -44)],
+]
+
+
+def world_map(cv, box, panels, items):
+    x0, y0, x1, y1 = box
+    lon0, lon1, lat0, lat1 = -170, 180, -50, 78
+    cv.rect(x0, y0, x1, y1, fill=(222, 232, 242))
+
+    def P(lon, lat):
+        return (x0 + (lon - lon0) / (lon1 - lon0) * (x1 - x0), y1 - (lat - lat0) / (lat1 - lat0) * (y1 - y0))
+    for poly in LAND:
+        cv.poly([P(*p) for p in poly], fill=(190, 196, 204))
+    for region, _txt, (lon, lat) in items:
+        x, y = P(lon, lat)
+        cv.circle(x, y, 3.4, fill=REGION[region], outline=WHITE, width=1)
+    for i, (region, (lon, lat)) in enumerate(panels):
+        if lon is None:
+            continue
+        x, y = P(lon, lat)
+        cv.circle(x, y, 7.5, fill=REGION[region], outline=WHITE, width=1.2)
+        cv.text(x, y + 0.5, str(i + 1), F("arialbd.ttf", 9.5), WHITE, anchor="mm")
+    cv.rect(x0, y0, x1, y1, outline=(150, 150, 160), width=1)
+
+
+def build(path, variant="map"):
     cv = Canvas()
+    items = LIST_ITEMS if variant.startswith("list") else [it for it in LIST_ITEMS if it[1] not in MAP_DROPS]
     cv.text(10, 10, "THE WORLD'S NEWS IN ONE PICTURE", F("arialbd.ttf", 16), RED)
-    cv.text(W - 10, 10, f"{10 + len(LIST_ITEMS)} STORIES · ALL REPORTED ON FRIDAY", F("arialbd.ttf", 14),
+    cv.text(W - 10, 10, f"{10 + len(items)} STORIES · ALL REPORTED ON FRIDAY", F("arialbd.ttf", 14),
             GREY, anchor="ra")
     fd = cv.fit("FRIDAY 13 NOVEMBER 2026", "arialbd.ttf", 76, W - 20)
     cv.text(W / 2, 30, "FRIDAY 13 NOVEMBER 2026", fd, NAVY, anchor="ma")
@@ -564,24 +618,25 @@ def build(path):
 
     m, g = 10, 8
     y0, y1 = 123, 393
-    panel(cv, (m, y0, 612, y1), scene_faa, 1, "UNITED STATES",
-          "FAA halts all US departures after air-traffic telecom outage",
-          "First nationwide ground stop since Jan 2023; nearly 5,000 flights cancelled",
-          scene_frac=0.57, head_px=27, sub_px=14)
-    panel(cv, (612 + g, y0, W - m, y1), scene_iran, 2, "MIDDLE EAST",
-          "Iran says it destroyed a US radar in Bahrain",
-          "Revenge for a US strike in Sirik, says the IRGC. The US says it downed both drones.",
-          scene_frac=0.57, head_px=21, sub_px=13.5)
+    (f1, r1, h1, s1, _), (f2, r2, h2, s2, _) = ROW1[::-1] if variant.endswith("swap") else ROW1
+    panel(cv, (m, y0, 612, y1), f1, 1, r1, h1, s1, scene_frac=0.57, head_px=27, sub_px=14)
+    panel(cv, (612 + g, y0, W - m, y1), f2, 2, r2, h2, s2, scene_frac=0.57, head_px=21, sub_px=13.5)
     y0, y1 = 401, 617
     cw = (W - 2 * m - 3 * g) / 4
-    for i, (fn, rg, hd, sb) in enumerate(ROW2):
+    for i, (fn, rg, hd, sb, _) in enumerate(ROW2):
         x0 = m + i * (cw + g)
         panel(cv, (x0, y0, x0 + cw, y1), fn, 3 + i, rg, hd, sb, scene_frac=0.50, head_px=18, sub_px=12.5)
     y0, y1 = 625, 829
-    for i, (fn, rg, hd, sb) in enumerate(ROW3):
+    for i, (fn, rg, hd, sb, _) in enumerate(ROW3):
         x0 = m + i * (cw + g)
         panel(cv, (x0, y0, x0 + cw, y1), fn, 7 + i, rg, hd, sb, scene_frac=0.47, head_px=18, sub_px=12.5)
-    listing(cv, (m, 837, W - m, 1003), LIST_ITEMS, 11)
+    flat = [(it[0], it[1]) for it in items]
+    if variant.startswith("list"):
+        listing(cv, (m, 837, W - m, 1003), flat, 11)
+    else:
+        cv.text(m, 837, "WHERE IT HAPPENED", F("arialbd.ttf", 15), RED)
+        world_map(cv, (m, 857, 370, 1003), [(r[1], r[4]) for r in ROW1 + ROW2 + ROW3], items)
+        listing(cv, (382, 837, W - m, 1003), flat, 11, cols=2)
     cv.text(W / 2, 1009, "Every story here was reported on Friday 13 November 2026. Sources: AP, Reuters, NPR, "
             "CNBC, Al Jazeera, BBC, Vatican News, Space.com", F("ariali.ttf", 10.5), GREY, anchor="ma")
 
@@ -590,49 +645,216 @@ def build(path):
     return path
 
 
+# (painter, region, headline, one factual line, (lon, lat) for the map)
+ROW1 = [
+    (scene_faa, "UNITED STATES", "FAA halts all US departures after air-traffic telecom outage",
+     "First nationwide ground stop since Jan 2023; nearly 5,000 flights cancelled", (-98, 39)),
+    (scene_iran, "MIDDLE EAST", "Iran says it destroyed a US radar in Bahrain",
+     "Revenge for a US strike in Sirik, says the IRGC. The US says it downed both drones.", (50.5, 26)),
+]
 ROW2 = [
     (scene_starship, "SCIENCE", "SpaceX's Starship Flight 15 reaches orbit",
-     "Booster catch called off; the ship stays up for a 22-hour test"),
+     "Booster catch called off; the ship stays up for a 22-hour test", (-97.2, 26)),
     (scene_nola, "UNITED STATES", "Tanker hits docked cruise ship in New Orleans",
-     "American Heritage capsizes; all aboard accounted for, 32 in hospital"),
+     "American Heritage capsizes; all aboard accounted for, 32 in hospital", (-90, 30)),
     (scene_pope, "AMERICAS", "Pope Leo XIV says Mass in Chiclayo, Peru",
-     "About 500,000 gather in his former diocese"),
+     "About 500,000 gather in his former diocese", (-79.8, -6.8)),
     (scene_nvidia, "MARKETS", "Nvidia closes below $4 trillion",
-     "First time since July 2025, a day after CEO Jensen Huang quit"),
+     "First time since July 2025, a day after CEO Jensen Huang quit", (-122, 37.4)),
 ]
 ROW3 = [
     (scene_kyiv, "EUROPE", "Russian drone sets a Kyiv hospital ablaze",
-     "About 30 evacuated; strikes also kill 3 in Odesa and Zaporizhzhia"),
+     "About 30 evacuated; strikes also kill 3 in Odesa and Zaporizhzhia", (30.5, 50.4)),
     (scene_msft, "WORLDWIDE", "Microsoft outage hits Outlook and Teams",
-     "Second day of disruption in at least 74 countries"),
+     "Second day of disruption in at least 74 countries", (None, None)),
     (scene_gaza, "MIDDLE EAST", "Gaza: strike on Nasser Hospital complex",
-     "Six killed in Khan Younis, a surgeon among them"),
+     "Six killed in Khan Younis, a surgeon among them", (34.3, 31.3)),
     (scene_assam, "ASIA", "Bus-truck crash in India's Assam kills 24",
-     "Minibus hits a container truck near Kaziranga"),
+     "Minibus hits a container truck near Kaziranga", (93.9, 26.6)),
 ]
 LIST_ITEMS = [
-    ("EUROPE", "EU names UK, France, Germany, Italy, Poland for peace talks"),
-    ("ASIA", "Trump, Xi and Putin to hold 3-way talks at APEC in China"),
-    ("MIDDLE EAST", "Turkey and Qatar sign a mutual defence pact"),
-    ("MIDDLE EAST", "Iran says an LNG tanker hit a mine in Hormuz"),
-    ("MIDDLE EAST", "UN: over 340,000 now displaced in Yemen"),
-    ("EUROPE", "Moscow car bomb wounds ex-aide of Ukraine ex-PM Azarov"),
-    ("ASIA", "Japan's PM Takaichi to make first China visit, for APEC"),
-    ("ASIA", "Pakistan's army says 74 militants killed in raids"),
-    ("ASIA", "North Korea changes its flag, first time since 1948"),
-    ("AFRICA", "Unfinished building collapses near Nairobi, 6 dead"),
-    ("AFRICA", "Nigeria ends Ebola watch with no new cases"),
-    ("EUROPE", "Suspected drones over US airbase RAF Lakenheath"),
-    ("MARKETS", "US producer prices up 6.5% in a year"),
-    ("UNITED STATES", "Lauren Boebert loses her Colorado House seat"),
-    ("SCIENCE", "Shuttle Endeavour put on show upright in LA"),
-    ("CULTURE", "U2 album out with Dolly Parton's last vocal"),
-    ("SPORT", "Pochettino named Manchester United manager"),
-    ("SPORT", "Baseball: Japan beat South Korea 9-5 in Tokyo"),
+    ("EUROPE", "EU picks five nations to join Ukraine peace talks", (-6.3, 53.3)),
+    ("ASIA", "Trump, Xi and Putin to meet at APEC in China", (114, 22.5)),
+    ("MIDDLE EAST", "Turkey and Qatar sign a mutual defence pact", (29, 41)),
+    ("MIDDLE EAST", "Iran says an LNG tanker hit a mine in Hormuz", (56.5, 26.5)),
+    ("MIDDLE EAST", "UN: over 340,000 now displaced in Yemen", (45, 15)),
+    ("EUROPE", "Moscow car bomb wounds ex-aide of Ukraine ex-PM", (37.6, 55.7)),
+    ("ASIA", "Japan's PM Takaichi to make first China visit, for APEC", (139.7, 35.7)),
+    ("ASIA", "Pakistan army says 74 militants killed in raids", (70, 33)),
+    ("ASIA", "North Korea changes its flag, first since 1948", (125.7, 39)),
+    ("AFRICA", "Building collapses near Nairobi, killing 6", (36.8, -1.3)),
+    ("AFRICA", "Nigeria ends Ebola watch with no new cases", (7.5, 9)),
+    ("EUROPE", "Suspected drones over US airbase RAF Lakenheath", (0.5, 52.4)),
+    ("MARKETS", "US producer prices up 6.5% in a year", (-77, 38.9)),
+    ("UNITED STATES", "Lauren Boebert loses her Colorado House seat", (-105, 39)),
+    ("SCIENCE", "Shuttle Endeavour put on show upright in LA", (-118.3, 34)),
+    ("CULTURE", "U2 album out with Dolly Parton's last vocal", (-6.3, 53.3)),
+    ("SPORT", "Pochettino named Manchester United manager", (-2.2, 53.5)),
+    ("SPORT", "Baseball: Japan beat South Korea 9-5 in Tokyo", (139.7, 35.7)),
 ]
+# the map variant has room for 16 list lines
+MAP_DROPS = {"Japan's PM Takaichi to make first China visit, for APEC", "Iran says an LNG tanker hit a mine in Hormuz"}
+
+
+# ---- v6: three-story top row, serif headlines ----------------------------------------
+
+def flag_us(c, x0, y0, x1, y1):
+    h = (y1 - y0) / 7
+    for i in range(7):
+        c.rect(x0, y0 + i * h, x1, y0 + (i + 1) * h, fill=(178, 34, 52) if i % 2 == 0 else WHITE)
+    c.rect(x0, y0, x0 + (x1 - x0) * 0.42, y0 + h * 4, fill=(60, 59, 110))
+
+
+def flag_cn(c, x0, y0, x1, y1):
+    c.rect(x0, y0, x1, y1, fill=(222, 41, 16))
+    cx, cy, r = x0 + (x1 - x0) * 0.22, y0 + (y1 - y0) * 0.32, (y1 - y0) * 0.2
+    c.poly([(cx + (r if i % 2 == 0 else r * 0.4) * math.cos(math.radians(-90 + i * 36)),
+             cy + (r if i % 2 == 0 else r * 0.4) * math.sin(math.radians(-90 + i * 36))) for i in range(10)],
+           fill=(255, 222, 0))
+
+
+def flag_ru(c, x0, y0, x1, y1):
+    h = (y1 - y0) / 3
+    for i, col in enumerate([WHITE, (0, 57, 166), (213, 43, 30)]):
+        c.rect(x0, y0 + i * h, x1, y0 + (i + 1) * h, fill=col)
+    c.rect(x0, y0, x1, y1, outline=(160, 160, 160), width=1)
+
+
+def scene_apec(c):
+    w, h = c.w, c.h
+    c.vgrad(0, 0, w, h, (246, 236, 214), (232, 214, 182))
+    # round table seen from the front
+    c.ellipse(w * 0.14, h * 0.56, w * 0.86, h * 0.84, fill=(150, 100, 60))
+    c.ellipse(w * 0.14, h * 0.52, w * 0.86, h * 0.79, fill=(186, 130, 80))
+    # three flags on stands
+    fw, fh = w * 0.22, h * 0.24
+    for i, (fn, label) in enumerate([(flag_us, "TRUMP"), (flag_cn, "XI"), (flag_ru, "PUTIN")]):
+        cx = w * (0.22 + i * 0.28)
+        top = h * (0.20 if i == 1 else 0.28)
+        c.rect(cx - 1.5, top, cx + 1.5, h * 0.62, fill=(90, 90, 90))
+        fn(c, cx - fw / 2, top, cx + fw / 2, top + fh)
+        c.text(cx, top - 4, label, F("arialbd.ttf", 13), INK, anchor="md")
+    c.text(w / 2, h * 0.925, "APEC · SHENZHEN · NEXT WEEK", F("arialbd.ttf", 12), (90, 60, 30), anchor="mm")
+
+
+def scene_eu(c):
+    w, h = c.w, c.h
+    c.rect(0, 0, w, h, fill=(0, 51, 153))
+    cx, cy, r = w * 0.50, h * 0.40, min(w, h) * 0.26
+    for i in range(12):
+        a = math.radians(i * 30)
+        x, y, s = cx + r * math.cos(a), cy + r * math.sin(a), 6
+        c.poly([(x + (s if k % 2 == 0 else s * 0.4) * math.cos(math.radians(-90 + k * 36)),
+                 y + (s if k % 2 == 0 else s * 0.4) * math.sin(math.radians(-90 + k * 36))) for k in range(10)],
+               fill=(255, 204, 0))
+    c.text(cx, cy, "5", F("georgiab.ttf", 30), WHITE, anchor="mm")
+    # five national flags along the bottom
+    fw, fh, gap = w * 0.15, h * 0.16, w * 0.03
+    x = (w - 5 * fw - 4 * gap) / 2
+    y = h * 0.78
+    def uk(c, a, b, cc, d):
+        c.rect(a, b, cc, d, fill=(1, 33, 105))
+        c.line([(a, b), (cc, d)], WHITE, 3)
+        c.line([(a, d), (cc, b)], WHITE, 3)
+        c.rect((a + cc) / 2 - 2.5, b, (a + cc) / 2 + 2.5, d, fill=(200, 16, 46))
+        c.rect(a, (b + d) / 2 - 2, cc, (b + d) / 2 + 2, fill=(200, 16, 46))
+    def vert(cols):
+        def f(c, a, b, cc, d):
+            ww = (cc - a) / 3
+            for k, col in enumerate(cols):
+                c.rect(a + k * ww, b, a + (k + 1) * ww, d, fill=col)
+        return f
+    def horiz(cols):
+        def f(c, a, b, cc, d):
+            hh = (d - b) / len(cols)
+            for k, col in enumerate(cols):
+                c.rect(a, b + k * hh, cc, b + (k + 1) * hh, fill=col)
+        return f
+    flags = [uk, vert([(0, 35, 149), WHITE, (237, 41, 57)]), horiz([(0, 0, 0), (221, 0, 0), (255, 206, 0)]),
+             vert([(0, 146, 70), WHITE, (206, 43, 55)]), horiz([WHITE, (220, 20, 60)])]
+    for fn in flags:
+        fn(c, x, y, x + fw, y + fh)
+        c.rect(x, y, x + fw, y + fh, outline=(200, 200, 200), width=1)
+        x += fw + gap
+
+
+def build_v6(path, list_items=None):
+    items = list_items or LIST_6
+    cv = Canvas()
+    cv.text(10, 10, "THE WORLD'S NEWS IN ONE PICTURE", F("arialbd.ttf", 16), RED)
+    cv.text(W - 10, 10, f"{11 + len(items)} STORIES · ALL REPORTED ON FRIDAY", F("arialbd.ttf", 14),
+            GREY, anchor="ra")
+    fd = cv.fit("Friday 13 November 2026", "georgiab.ttf", 80, W - 20)
+    cv.text(W / 2, 28, "Friday 13 November 2026", fd, INK, anchor="ma")
+    cv.rect(10, 112, W - 10, 115, fill=INK)
+    m, g = 10, 8
+    y0, y1 = 123, 393
+    xs = [m, 440, 732, W - m]
+    for i, (fn, rg, hd, sb, _) in enumerate(ROW1_6):
+        panel(cv, (xs[i] + (g / 2 if i else 0), y0, xs[i + 1] - (g / 2 if i < 2 else 0), y1), fn, 1 + i, rg, hd, sb,
+              scene_frac=0.50, head_px=24 if i == 0 else 19.5, sub_px=13 if i == 0 else 12.5, hfont="georgiab.ttf")
+    y0, y1 = 401, 617
+    cw = (W - 2 * m - 3 * g) / 4
+    for i, (fn, rg, hd, sb, _) in enumerate(ROW2):
+        x0 = m + i * (cw + g)
+        panel(cv, (x0, y0, x0 + cw, y1), fn, 4 + i, rg, hd, sb, scene_frac=0.50, head_px=18, sub_px=12.5,
+              hfont="georgiab.ttf")
+    y0, y1 = 625, 829
+    for i, (fn, rg, hd, sb, _) in enumerate(ROW3_6):
+        x0 = m + i * (cw + g)
+        panel(cv, (x0, y0, x0 + cw, y1), fn, 8 + i, rg, hd, sb, scene_frac=0.47, head_px=18, sub_px=12.5,
+              hfont="georgiab.ttf")
+    listing(cv, (m, 837, W - m, 1003), [(it[0], it[1]) for it in items], 12)
+    cv.text(W / 2, 1009, "Every story here was reported on Friday 13 November 2026. Sources: AP, Reuters, NPR, "
+            "CNBC, Al Jazeera, BBC, CNN, Vatican News, Space.com", F("ariali.ttf", 10.5), GREY, anchor="ma")
+    out = cv.im.resize((W, H), Image.LANCZOS)
+    out.save(path, optimize=True)
+    return path
+
+
+ROW1_6 = [
+    (scene_faa, "UNITED STATES", "FAA halts all US departures as air-traffic telecoms fail",
+     "First nationwide ground stop since Jan 2023; nearly 5,000 flights cancelled; no sign of an attack",
+     (-98, 39)),
+    (scene_iran, "MIDDLE EAST", "Iran says it hit a US radar in Bahrain; US denies it",
+     "US says it shot down both drones; IRGC cites a US strike in Sirik", (50.5, 26)),
+    (scene_apec, "ASIA", "Trump, Xi and Putin to meet in China next week",
+     "White House: first three-way talks, at the APEC summit", (114, 22.5)),
+]
+ROW3_6 = [
+    (scene_kyiv, "EUROPE", "Russian drone sets a Kyiv hospital ablaze",
+     "About 30 evacuated; strikes also kill 3 in Odesa and Zaporizhzhia", (30.5, 50.4)),
+    (scene_eu, "EUROPE", "EU picks five nations for Ukraine peace talks",
+     "UK, France, Germany, Italy, Poland; agreed in Dublin", (-6.3, 53.3)),
+    (scene_gaza, "MIDDLE EAST", "Gaza: strike on Nasser Hospital complex",
+     "Six killed in Khan Younis, a surgeon among them", (34.3, 31.3)),
+    (scene_assam, "ASIA", "Bus-truck crash in India's Assam kills 24",
+     "Minibus hits a container truck near Kaziranga", (93.9, 26.6)),
+]
+LIST_6 = [
+    ("WORLDWIDE", "Microsoft outage hits Outlook and Teams for a second day", None),
+    ("MIDDLE EAST", "Turkey and Qatar sign a mutual defence pact", None),
+    ("MIDDLE EAST", "Iran says an LNG tanker hit a mine in Hormuz", None),
+    ("MIDDLE EAST", "UN: over 340,000 now displaced in Yemen", None),
+    ("EUROPE", "Moscow car bomb wounds ex-aide of Ukraine ex-PM", None),
+    ("ASIA", "Japan's PM Takaichi to make first China visit, for APEC", None),
+    ("ASIA", "Pakistan army says 74 militants killed in raids", None),
+    ("ASIA", "North Korea changes its flag, first since 1948", None),
+    ("AFRICA", "Building collapses near Nairobi, killing 6", None),
+    ("AFRICA", "Nigeria ends Ebola watch with no new cases", None),
+    ("EUROPE", "Suspected drones over US airbase RAF Lakenheath", None),
+    ("MARKETS", "US producer prices up 6.5% in a year", None),
+    ("UNITED STATES", "Lauren Boebert loses her Colorado House seat", None),
+    ("SCIENCE", "Shuttle Endeavour put on show upright in LA", None),
+    ("CULTURE", "U2 album out with Dolly Parton's last vocal", None),
+    ("SPORT", "Pochettino named Manchester United manager", None),
+    ("SPORT", "Baseball: Japan beat South Korea 9-5 in Tokyo", None),
+]
+
 
 
 if __name__ == "__main__":
     p = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "entry.png")
-    build(p)
+    v = sys.argv[2] if len(sys.argv) > 2 else "v6"
+    build_v6(p) if v == "v6" else build(p, v)
     print(p, os.path.getsize(p))
