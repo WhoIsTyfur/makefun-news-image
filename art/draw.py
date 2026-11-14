@@ -149,7 +149,9 @@ def scene_faa(c):
     bx0, by0, bx1 = w * 0.53, h * 0.05, w * 0.97
     rows = [("NEW YORK", "CANCELLED"), ("CHICAGO", "CANCELLED"), ("ATLANTA", "CANCELLED"),
             ("DALLAS", "CANCELLED"), ("DENVER", "CANCELLED"), ("LOS ANGELES", "CANCELLED")]
-    rh = 27
+    nrow = max(3, min(6, int((h * 0.92 - 42) // 25)))
+    rows = rows[:nrow]
+    rh = min(27, (h * 0.90 - 42) / nrow)
     c.rect(bx0, by0, bx1, by0 + 34 + rh * len(rows) + 8, fill=(14, 16, 20), outline=(90, 90, 90),
            width=2, r=4)
     fh = F("arialbd.ttf", 17)
@@ -162,15 +164,15 @@ def scene_faa(c):
         c.rect(bx1 - 122, y - 2, bx1 - 8, y + 20, fill=RED)
         c.text(bx1 - 65, y + 9, st, F("arialbd.ttf", 15), WHITE, anchor="mm")
     # STOP sign
-    cx, cy, r = w * 0.40, h * 0.30, 52
+    cx, cy, r = w * 0.40, h * 0.30, min(52, h * 0.19)
     oct_pts = [(cx + r * math.cos(math.radians(22.5 + 45 * i)), cy + r * math.sin(math.radians(22.5 + 45 * i)))
                for i in range(8)]
     c.poly(oct_pts, fill=WHITE)
     r2 = r - 5
     c.poly([(cx + r2 * math.cos(math.radians(22.5 + 45 * i)), cy + r2 * math.sin(math.radians(22.5 + 45 * i)))
             for i in range(8)], fill=RED)
-    c.text(cx, cy, "STOP", F("arialbd.ttf", 27), WHITE, anchor="mm")
-    c.rect(cx - 3, cy + r, cx + 3, h * 0.63, fill=(170, 170, 170))
+    c.text(cx, cy, "STOP", F("arialbd.ttf", r * 0.52), WHITE, anchor="mm")
+    c.rect(cx - 3, cy + r, cx + 3, h * 0.64, fill=(170, 170, 170))
 
 
 def scene_iran(c):
@@ -440,78 +442,194 @@ def scene_guinea(c):
     c.rect(w * 0.56, h * 0.20, w * 0.63, h * 0.38, fill=(0, 148, 96))
 
 
-# ---- panel frame -----------------------------------------------------------------
+# ---- extra scenes ----------------------------------------------------------------
 
-def panel(cv, box, painter, tag, head, sub, head_px=24, sub_px=15, label_h=None, tag_col=RED):
+def scene_msft(c):
+    w, h = c.w, c.h
+    c.vgrad(0, 0, w, h, (200, 214, 232), (232, 238, 246))
+    c.rect(0, h * 0.78, w, h, fill=(150, 120, 90))
+    c.rect(w * 0.22, h * 0.18, w * 0.78, h * 0.70, fill=(40, 44, 52), r=6)
+    c.rect(w * 0.25, h * 0.22, w * 0.75, h * 0.66, fill=(236, 240, 246))
+    c.poly([(w * 0.14, h * 0.80), (w * 0.86, h * 0.80), (w * 0.78, h * 0.70), (w * 0.22, h * 0.70)],
+           fill=(80, 86, 96))
+    ex0, ey0, ex1, ey1 = w * 0.36, h * 0.30, w * 0.64, h * 0.56
+    c.rect(ex0, ey0, ex1, ey1, fill=WHITE, outline=(60, 90, 160), width=2)
+    c.line([(ex0, ey0), ((ex0 + ex1) / 2, (ey0 + ey1) / 2), (ex1, ey0)], (60, 90, 160), 2)
+    c.circle(ex1, ey1, 17, fill=RED)
+    c.line([(ex1 - 8, ey1 - 8), (ex1 + 8, ey1 + 8)], WHITE, 4)
+    c.line([(ex1 + 8, ey1 - 8), (ex1 - 8, ey1 + 8)], WHITE, 4)
+
+
+def scene_kyiv(c):
+    w, h = c.w, c.h
+    c.vgrad(0, 0, w, h, (30, 30, 46), (80, 70, 80))
+    c.rect(w * 0.18, h * 0.30, w * 0.82, h * 0.86, fill=(200, 196, 188))
+    for r in range(4):
+        for i in range(6):
+            fire = (r == 0 and i in (1, 2, 3)) or (r == 1 and i == 2)
+            c.rect(w * 0.22 + i * w * 0.10, h * 0.36 + r * h * 0.12, w * 0.28 + i * w * 0.10,
+                   h * 0.43 + r * h * 0.12, fill=(255, 150, 40) if fire else (70, 80, 96))
+    c.rect(w * 0.46, h * 0.20, w * 0.54, h * 0.30, fill=WHITE)
+    c.rect(w * 0.485, h * 0.215, w * 0.515, h * 0.285, fill=RED)
+    c.rect(w * 0.47, h * 0.235, w * 0.53, h * 0.265, fill=RED)
+    for x, y, r in [(0.36, 0.22, 20), (0.44, 0.12, 26), (0.30, 0.10, 18)]:
+        c.circle(w * x, h * y, r, fill=(90, 86, 92))
+    for x in (0.34, 0.42, 0.50):
+        c.poly([(w * (x - 0.03), h * 0.36), (w * x, h * 0.26), (w * (x + 0.03), h * 0.36)], fill=(255, 190, 60))
+    c.rect(w * 0.0, h * 0.80, w * 0.20, h * 0.94, fill=(200, 30, 30), r=3)
+    c.d.arc(sc(w * 0.10, h * 0.30, w * 0.50, h * 1.10), 220, 300, fill=(150, 200, 255), width=3 * S)
+    c.rect(0, h * 0.94, w, h, fill=(50, 50, 56))
+
+
+# ---- layout ----------------------------------------------------------------------
+
+REGION = {
+    "UNITED STATES": (190, 30, 45), "AMERICAS": (190, 30, 45), "MIDDLE EAST": (214, 110, 20),
+    "EUROPE": (30, 80, 170), "ASIA": (20, 130, 80), "AFRICA": (140, 80, 30), "SCIENCE": (110, 60, 160),
+    "MARKETS": (0, 120, 130), "WORLDWIDE": (90, 90, 100), "SPORT": (40, 120, 40), "CULTURE": (170, 50, 120),
+    "CLIMATE": (40, 130, 90),
+}
+
+
+def wrap(cv, s, font, maxw):
+    lines, cur = [], ""
+    for wd in s.split():
+        t = (cur + " " + wd).strip()
+        if cv.tw(t, font) <= maxw:
+            cur = t
+        else:
+            lines.append(cur)
+            cur = wd
+    lines.append(cur)
+    return lines
+
+
+def panel(cv, box, painter, num, region, head, sub, scene_frac=0.55, head_px=22, sub_px=13.5):
     x0, y0, x1, y1 = box
-    lh = label_h or (head_px * 1.1 + sub_px * 1.3 + 16)
-    sx1, sy1 = x1, y1 - lh
-    sub_c = cv.clip(x0, y0, sx1, sy1)
+    sy1 = y0 + (y1 - y0) * scene_frac
+    sub_c = cv.clip(x0, y0, x1, sy1)
     painter(sub_c)
     sub_c.done()
     cv.rect(x0, sy1, x1, y1, fill=WHITE)
-    cv.rect(x0, y0, x1, y1, outline=INK, width=2)
-    cv.line([(x0, sy1), (x1, sy1)], INK, 2)
-    # region tag on the scene
-    ft = F("arialbd.ttf", 13)
-    tw = cv.tw(tag, ft)
-    cv.rect(x0 + 6, y0 + 6, x0 + 18 + tw, y0 + 26, fill=tag_col)
-    cv.text(x0 + 12, y0 + 16, tag, ft, WHITE, anchor="lm")
-    # headline + one factual line
-    maxw = (x1 - x0) - 16
-    fh = cv.fit(head, "arialbd.ttf", head_px, maxw)
-    cv.text(x0 + 8, sy1 + 7, head, fh, INK)
-    fs = cv.fit(sub, "arial.ttf", sub_px, maxw)
-    cv.text(x0 + 8, sy1 + 9 + head_px * 1.12, sub, fs, (60, 62, 70))
+    cv.rect(x0, y0, x1, y1, outline=(60, 60, 66), width=1.5)
+    col = REGION[region]
+    y = sy1 + 7
+    cv.circle(x0 + 16, y + 9, 9.5, fill=col)
+    cv.text(x0 + 16, y + 9.5, str(num), F("arialbd.ttf", 12), WHITE, anchor="mm")
+    cv.text(x0 + 31, y + 9.5, region, F("arialbd.ttf", 12), col, anchor="lm")
+    y += 22
+    maxw = (x1 - x0) - 18
+    fh = F("arialbd.ttf", head_px)
+    lines = wrap(cv, head, fh, maxw)
+    while len(lines) > 2:
+        head_px -= 1
+        fh = F("arialbd.ttf", head_px)
+        lines = wrap(cv, head, fh, maxw)
+    for ln in lines:
+        cv.text(x0 + 9, y, ln, fh, INK)
+        y += head_px * 1.13
+    fs = F("arial.ttf", sub_px)
+    for ln in wrap(cv, sub, fs, maxw)[:2]:
+        cv.text(x0 + 9, y + 2, ln, fs, (70, 72, 80))
+        y += sub_px * 1.22
+
+
+def listing(cv, box, items, start, cols=3, px=13):
+    x0, y0, x1, y1 = box
+    title = "ALSO ON FRIDAY 13 NOVEMBER"
+    ftl = F("arialbd.ttf", 15)
+    cv.text(x0, y0, title, ftl, RED)
+    cv.line([(x0 + cv.tw(title, ftl) + 10, y0 + 9), (x1, y0 + 9)], (180, 180, 180), 1)
+    rows = math.ceil(len(items) / cols)
+    cw = (x1 - x0) / cols
+    rh = (y1 - y0 - 24) / rows
+    for i, (region, txt) in enumerate(items):
+        cx = x0 + (i // rows) * cw
+        cy = y0 + 24 + (i % rows) * rh
+        col = REGION[region]
+        cv.circle(cx + 9, cy + 8, 8.5, fill=col)
+        cv.text(cx + 9, cy + 8.5, str(start + i), F("arialbd.ttf", 10.5), WHITE, anchor="mm")
+        f = cv.fit(txt, "arialbd.ttf", px, cw - 30, minpx=10.5)
+        cv.text(cx + 22, cy + 1, txt, f, INK)
 
 
 def build(path):
     cv = Canvas()
-    # masthead
-    cv.rect(0, 0, W, 118, fill=NAVY)
-    cv.text(W / 2, 14, "THE WORLD ON", F("arialbd.ttf", 20), (200, 210, 230), anchor="ma")
-    fd = cv.fit("FRIDAY 13 NOVEMBER 2026", "arialbd.ttf", 66, W - 40)
-    cv.text(W / 2, 40, "FRIDAY 13 NOVEMBER 2026", fd, WHITE, anchor="ma")
-    cv.rect(0, 118, W, 124, fill=RED)
+    cv.text(10, 10, "THE WORLD'S NEWS IN ONE PICTURE", F("arialbd.ttf", 16), RED)
+    cv.text(W - 10, 10, f"{10 + len(LIST_ITEMS)} STORIES · ALL REPORTED ON FRIDAY", F("arialbd.ttf", 14),
+            GREY, anchor="ra")
+    fd = cv.fit("FRIDAY 13 NOVEMBER 2026", "arialbd.ttf", 76, W - 20)
+    cv.text(W / 2, 30, "FRIDAY 13 NOVEMBER 2026", fd, NAVY, anchor="ma")
+    cv.rect(10, 112, W - 10, 115, fill=NAVY)
 
-    m, g = 8, 8
-    top = 132
-    # row A: lead (FAA) + right column
-    lead = (m, top, 640, 540)
-    panel(cv, lead, scene_faa, "USA \u00b7 LEAD STORY", "ALL US FLIGHTS GROUNDED",
-          "FAA halts departures nationwide after air-traffic comms outage; thousands of flights cancelled",
-          head_px=46, sub_px=17)
-    rc = (640 + g, top, W - m, top + 200)
-    panel(cv, rc, scene_iran, "GULF \u00b7 US-IRAN WAR", "IRAN CLAIMS HIT ON US RADAR",
-          "IRGC says Bahrain radar destroyed; US denies it", head_px=22, sub_px=14)
-    rc2 = (640 + g, top + 208, W - m, 540)
-    panel(cv, rc2, scene_starship, "SPACE", "STARSHIP FLIGHT 15 IN ORBIT",
-          "SpaceX ship reaches orbit; booster catch called off", head_px=22, sub_px=14)
-    # row B
-    yB0, yB1 = 548, 786
-    cols = [m, 344, 680, W - m]
-    panel(cv, (cols[0], yB0, cols[1] - g / 2, yB1), scene_nola, "NEW ORLEANS", "TANKER CAPSIZES CRUISE SHIP",
-          "American Heritage rolls over; all aboard accounted for", head_px=22, sub_px=14)
-    panel(cv, (cols[1] + g / 2, yB0, cols[2] - g / 2, yB1), scene_pope, "PERU", "POPE LEO MASS IN CHICLAYO",
-          "About 500,000 hear Leo XIV in his former diocese", head_px=22, sub_px=14)
-    panel(cv, (cols[2] + g / 2, yB0, cols[3], yB1), scene_nvidia, "MARKETS", "NVIDIA SINKS BELOW $4T",
-          "First time since July 2025, after CEO Huang quits", head_px=22, sub_px=14)
-    # row C: four panels
-    yC0, yC1 = 794, 1016
+    m, g = 10, 8
+    y0, y1 = 123, 393
+    panel(cv, (m, y0, 612, y1), scene_faa, 1, "UNITED STATES",
+          "FAA halts all US departures after air-traffic telecom outage",
+          "First nationwide ground stop since Jan 2023; nearly 5,000 flights cancelled",
+          scene_frac=0.57, head_px=27, sub_px=14)
+    panel(cv, (612 + g, y0, W - m, y1), scene_iran, 2, "MIDDLE EAST",
+          "Iran says it destroyed a US radar in Bahrain",
+          "Revenge for a US strike in Sirik, says the IRGC. The US says it downed both drones.",
+          scene_frac=0.57, head_px=21, sub_px=13.5)
+    y0, y1 = 401, 617
     cw = (W - 2 * m - 3 * g) / 4
-    rowc = [
-        (scene_ukraine, "UKRAINE", "RUSSIAN STRIKES KILL 3", "Odesa and Zaporizhzhia hit"),
-        (scene_gaza, "GAZA", "STRIKE AT NASSER HOSPITAL", "Six killed in Khan Younis complex"),
-        (scene_assam, "INDIA", "ASSAM BUS CRASH: 24 DEAD", "Minibus hits truck near Kaziranga"),
-        (scene_guinea, "WEST AFRICA", "GUINEA GOLD CLASHES", "10 killed over mining ban"),
-    ]
-    for i, (fn, tag, hd, sb) in enumerate(rowc):
+    for i, (fn, rg, hd, sb) in enumerate(ROW2):
         x0 = m + i * (cw + g)
-        panel(cv, (x0, yC0, x0 + cw, yC1), fn, tag, hd, sb, head_px=19, sub_px=13)
+        panel(cv, (x0, y0, x0 + cw, y1), fn, 3 + i, rg, hd, sb, scene_frac=0.50, head_px=18, sub_px=12.5)
+    y0, y1 = 625, 829
+    for i, (fn, rg, hd, sb) in enumerate(ROW3):
+        x0 = m + i * (cw + g)
+        panel(cv, (x0, y0, x0 + cw, y1), fn, 7 + i, rg, hd, sb, scene_frac=0.47, head_px=18, sub_px=12.5)
+    listing(cv, (m, 837, W - m, 1003), LIST_ITEMS, 11)
+    cv.text(W / 2, 1009, "Every story here was reported on Friday 13 November 2026. Sources: AP, Reuters, NPR, "
+            "CNBC, Al Jazeera, BBC, Vatican News, Space.com", F("ariali.ttf", 10.5), GREY, anchor="ma")
 
     out = cv.im.resize((W, H), Image.LANCZOS)
     out.save(path, optimize=True)
     return path
+
+
+ROW2 = [
+    (scene_starship, "SCIENCE", "SpaceX's Starship Flight 15 reaches orbit",
+     "Booster catch called off; the ship stays up for a 22-hour test"),
+    (scene_nola, "UNITED STATES", "Tanker hits docked cruise ship in New Orleans",
+     "American Heritage capsizes; all aboard accounted for, 32 in hospital"),
+    (scene_pope, "AMERICAS", "Pope Leo XIV says Mass in Chiclayo, Peru",
+     "About 500,000 gather in his former diocese"),
+    (scene_nvidia, "MARKETS", "Nvidia closes below $4 trillion",
+     "First time since July 2025, a day after CEO Jensen Huang quit"),
+]
+ROW3 = [
+    (scene_kyiv, "EUROPE", "Russian drone sets a Kyiv hospital ablaze",
+     "About 30 evacuated; strikes also kill 3 in Odesa and Zaporizhzhia"),
+    (scene_msft, "WORLDWIDE", "Microsoft outage hits Outlook and Teams",
+     "Second day of disruption in at least 74 countries"),
+    (scene_gaza, "MIDDLE EAST", "Gaza: strike on Nasser Hospital complex",
+     "Six killed in Khan Younis, a surgeon among them"),
+    (scene_assam, "ASIA", "Bus-truck crash in India's Assam kills 24",
+     "Minibus hits a container truck near Kaziranga"),
+]
+LIST_ITEMS = [
+    ("EUROPE", "EU names UK, France, Germany, Italy, Poland for peace talks"),
+    ("ASIA", "Trump, Xi and Putin to hold 3-way talks at APEC in China"),
+    ("MIDDLE EAST", "Turkey and Qatar sign a mutual defence pact"),
+    ("MIDDLE EAST", "Iran says an LNG tanker hit a mine in Hormuz"),
+    ("MIDDLE EAST", "UN: over 340,000 now displaced in Yemen"),
+    ("EUROPE", "Moscow car bomb wounds ex-aide of Ukraine ex-PM Azarov"),
+    ("ASIA", "Japan's PM Takaichi to make first China visit, for APEC"),
+    ("ASIA", "Pakistan's army says 74 militants killed in raids"),
+    ("ASIA", "North Korea changes its flag, first time since 1948"),
+    ("AFRICA", "Unfinished building collapses near Nairobi, 6 dead"),
+    ("AFRICA", "Nigeria ends Ebola watch with no new cases"),
+    ("EUROPE", "Suspected drones over US airbase RAF Lakenheath"),
+    ("MARKETS", "US producer prices up 6.5% in a year"),
+    ("UNITED STATES", "Lauren Boebert loses her Colorado House seat"),
+    ("SCIENCE", "Shuttle Endeavour put on show upright in LA"),
+    ("CULTURE", "U2 album out with Dolly Parton's last vocal"),
+    ("SPORT", "Pochettino named Manchester United manager"),
+    ("SPORT", "Baseball: Japan beat South Korea 9-5 in Tokyo"),
+]
 
 
 if __name__ == "__main__":
